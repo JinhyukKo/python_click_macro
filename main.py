@@ -5,6 +5,7 @@ import datetime
 import tkinter as tk
 from tkinter import ttk, messagebox
 import pyautogui  # 현재 마우스 위치 가져올 때만 사용
+import random
 
 # Windows API 상수
 MOUSEEVENTF_MOVE = 0x0001
@@ -12,8 +13,8 @@ MOUSEEVENTF_ABSOLUTE = 0x8000
 MOUSEEVENTF_LEFTDOWN = 0x0002
 MOUSEEVENTF_LEFTUP = 0x0004
 
-DELAY = 0.12
-
+DELAY = 0.05
+registered_delay = 0
 # 화면 해상도 구하기
 user32 = ctypes.windll.user32
 screen_width = user32.GetSystemMetrics(0)
@@ -65,13 +66,14 @@ click_queue = []
 
 # 예약된 클릭 실행
 def process_click_queue():
-    for target_time, x, y in click_queue:
+    for  target_time, x, y, delay_range in click_queue:
+        adjusted_time = target_time + datetime.timedelta(milliseconds=delay_range)
         while True:
             now = datetime.datetime.now()
-            if now >= target_time:
+            if now >= adjusted_time:
                 send_mouse_click_lowlevel(x, y)
                 break
-            # time.sleep(DELAY)
+            time.sleep(DELAY)  # 너무 짧은 sleep으로 CPU 과다 사용 방지
     messagebox.showinfo("완료", "모든 클릭 예약을 완료했습니다.")
 
 def add_to_queue():
@@ -90,9 +92,9 @@ def add_to_queue():
         x = int(entry_x.get())
         y = int(entry_y.get())
 
-        click_queue.append((target_time, x, y))
+        click_queue.append((target_time, x, y, registered_delay))
         update_queue_display()
-        messagebox.showinfo("추가됨", f"{target_time.strftime('%H:%M:%S.%f')[:-3]}에 ({x},{y}) 클릭 예약됨.")
+        messagebox.showinfo("추가됨", f"{target_time.strftime('%H:%M:%S.%f')[:-3]} ±{registered_delay}ms에 ({x},{y}) 클릭 예약됨.")
     except Exception as e:
         messagebox.showerror("오류", f"입력 오류: {e}")
 
@@ -100,8 +102,8 @@ def add_to_queue():
 # 예약 리스트 화면 갱신
 def update_queue_display():
     text_queue.delete("1.0", tk.END)
-    for i, (t, x, y) in enumerate(click_queue, 1):
-        text_queue.insert(tk.END, f"{i}. {t.strftime('%H:%M:%S.%f')[:-3]} - ({x}, {y})\n")
+    for i, (t, x, y,delay) in enumerate(click_queue, 1):
+        text_queue.insert(tk.END, f"{i}. {t.strftime('%H:%M:%S.%f')[:-3]} ±{delay}ms - ({x}, {y})\n")
 
 
 # 예약 실행 시작
@@ -141,7 +143,18 @@ def clear_queue_and_restart():
         update_queue_display()
         messagebox.showinfo("초기화됨", "모든 예약이 삭제되었습니다.")
         root.configure(bg='SystemButtonFace')  # 배경색 원래대로
-
+        
+def register_delay():
+    global registered_delay
+    try:
+        val = int(entry_delay.get())
+        if val < 0:
+            raise ValueError("0 이상의 숫자만 입력하세요.")
+        registered_delay = val
+        messagebox.showinfo("딜레이 등록", f"딜레이 {registered_delay}ms 가 등록되었습니다.")
+        label_registered_delay.config(text=f"현재 등록된 딜레이: {registered_delay} ms")
+    except Exception as e:
+        messagebox.showerror("오류", f"딜레이 입력 오류: {e}")
 
 
 # GUI 생성
@@ -183,22 +196,30 @@ entry_x.pack()
 tk.Label(root, text="Y 좌표:").pack()
 entry_y = tk.Entry(root)
 entry_y.pack()
+
 tk.Label(root, text="딜레이 범위 (ms):").pack()
 entry_delay = tk.Entry(root)
 entry_delay.insert(0, "0")  # 기본값 0
 entry_delay.pack()
 
 
+btn_register_delay = tk.Button(root, text="딜레이 등록", command=register_delay)
+btn_register_delay.pack(pady=5)
+
+label_registered_delay = tk.Label(root, text=f"현재 등록된 딜레이: {registered_delay} ms")
+label_registered_delay.pack()
+
+
 # 삭제 입력 라벨과 입력창
 tk.Label(root, text="삭제할 예약 번호 입력:").pack()
 entry_delete = tk.Entry(root)
 entry_delete.pack()
-
+tk.Button(root, text="예약 삭제", command=delete_from_queue).pack(pady=5)
 
 tk.Button(root, text="현재 마우스 위치 불러오기 (ctrl)", command=get_mouse_position).pack(pady=5)
 tk.Button(root, text="예약 추가 (Alt)", command=add_to_queue).pack(pady=5)
-tk.Button(root, text="START", command=start_queue).pack(pady=5)
-tk.Button(root, text="예약 삭제", command=delete_from_queue).pack(pady=5)
+tk.Button(root, text="START", command=start_queue,bg="red", fg="white").pack(pady=10)
+
 tk.Button(root, text="전체 삭제 후 다시 시작", command=clear_queue_and_restart).pack(pady=5)
 
 
