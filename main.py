@@ -175,6 +175,11 @@ tk.Label(root, text="Y 좌표:").pack()
 entry_y = tk.Entry(root)
 entry_y.pack()
 
+tk.Label(root, text="딜레이 범위 (ms):").pack()
+entry_delay = tk.Entry(root)
+entry_delay.insert(0, "0")  # 기본값 0
+entry_delay.pack()
+
 
 # 삭제 입력 라벨과 입력창
 tk.Label(root, text="삭제할 예약 번호 입력:").pack()
