@@ -72,29 +72,7 @@ def process_click_queue():
                 send_mouse_click_lowlevel(x, y)
                 break
             # time.sleep(DELAY)
-    messagebox.showinfo("완료", "종료합니다.")
-
-# 예약 추가 함수
-# def add_to_queue():
-#     try:
-#         hour = int(hour_cb.get())
-#         minute = int(minute_cb.get())
-#         second = int(second_cb.get())
-
-#         now = datetime.datetime.now()
-#         target_time = datetime.datetime(year=now.year, month=now.month, day=now.day,
-#                                         hour=hour, minute=minute, second=second)
-#         if target_time < now:
-#             target_time += datetime.timedelta(days=1)
-
-#         x = int(entry_x.get())
-#         y = int(entry_y.get())
-
-#         click_queue.append((target_time, x, y))
-#         update_queue_display()
-#         messagebox.showinfo("추가됨", f"{target_time.strftime('%H:%M:%S')}에 ({x},{y}) 클릭 예약됨.")
-#     except Exception as e:
-#         messagebox.showerror("오류", f"입력 오류: {e}")
+    messagebox.showinfo("완료", "모든 클릭 예약을 완료했습니다.")
 
 def add_to_queue():
     try:
@@ -186,11 +164,6 @@ millisecond_cb = ttk.Combobox(frame_time, values=[f"{i:03d}" for i in range(1000
 millisecond_cb.set("000")
 millisecond_cb.pack(side=tk.LEFT)
 
-
-tk.Label(root, text="딜레이 범위 (ms):").pack()
-entry_delay = tk.Entry(root)
-entry_delay.insert(0, "0")  # 기본값 0
-entry_delay.pack()
 
 tk.Label(root, text="X 좌표:").pack()
 entry_x = tk.Entry(root)
