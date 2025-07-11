@@ -134,6 +134,15 @@ def delete_from_queue():
     except ValueError:
         messagebox.showwarning("경고", "숫자를 입력하세요.")
 
+def clear_queue_and_restart():
+    global click_queue
+    if messagebox.askyesno("확인", "모든 예약을 삭제하고 다시 시작하시겠습니까?"):
+        click_queue = []
+        update_queue_display()
+        messagebox.showinfo("초기화됨", "모든 예약이 삭제되었습니다.")
+        root.configure(bg='SystemButtonFace')  # 배경색 원래대로
+
+
 
 # GUI 생성
 root = tk.Tk()
@@ -174,7 +183,6 @@ entry_x.pack()
 tk.Label(root, text="Y 좌표:").pack()
 entry_y = tk.Entry(root)
 entry_y.pack()
-
 tk.Label(root, text="딜레이 범위 (ms):").pack()
 entry_delay = tk.Entry(root)
 entry_delay.insert(0, "0")  # 기본값 0
@@ -191,6 +199,8 @@ tk.Button(root, text="현재 마우스 위치 불러오기 (ctrl)", command=get_
 tk.Button(root, text="예약 추가 (Alt)", command=add_to_queue).pack(pady=5)
 tk.Button(root, text="START", command=start_queue).pack(pady=5)
 tk.Button(root, text="예약 삭제", command=delete_from_queue).pack(pady=5)
+tk.Button(root, text="전체 삭제 후 다시 시작", command=clear_queue_and_restart).pack(pady=5)
+
 
 
 tk.Label(root, text="예약된 클릭 목록:").pack()
